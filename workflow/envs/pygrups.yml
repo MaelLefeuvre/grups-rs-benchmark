@@ -1,0 +1,18 @@
+name: pygrups
+channels:
+  - conda-forge
+  - anaconda
+  - bioconda
+dependencies:
+  - conda-forge::python=2.7.15
+  - conda-forge::cython=0.29.15
+  - conda-forge::matplotlib
+  - conda-forge::numpy=1.16.5
+  - bioconda::pysam=0.8.4
+  - bioconda::bx-python>=0.7.3
+  - conda-forge::r-base=3.4.1 
+  - conda-forge::r-perm
+  - conda-forge::r-ggplot2
+  - conda-forge::r-gplots
+  - conda-forge::r-rcolorbrewer
+  - conda-forge::r-vegan

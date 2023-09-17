@@ -1,0 +1,40 @@
+include: "rules/00-netrules.smk"
+include: "rules/grups-rs.smk"
+include: "rules/pygrups.smk"
+configfile: "./config/config.yml"
+
+
+
+rule grups_rs_bench:
+    input:
+        expand("results/{coverage}X/{SNPs}/{rep}/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pwd",
+            coverage = "1",
+            rep      = [i+1 for i in range(0, config['kinship']['GRUPS']['max-samples'])],
+            SNPs     = [2247, 4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
+        )
+
+rule plot_bench:
+    default_target: True
+    input:
+        benches = rules.grups_rs_bench.input
+    output:
+        hms_runtime_plot = "results/bench-plots/runtime-hms-3d-scatterplot.html",
+        rss_runtime_plot = "results/bench-plots/runtime-rss-3d-scatterplot.html"
+    conda: "envs/plot-bench.yml"
+    shell: """
+        workflow/scripts/plot-bench.R benchmarks/ results/bench-plots/
+    """
+
+
+rule pygrups_bench:
+    input:
+        expand(rules.pygrups_pedigree_sims.output.done,
+            coverage = "1",
+			SNPs     = [2247,4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
+        )
+
+rule untar_original_data:
+    input:  "original-data/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup.gz"
+    output: "results/input-pileups/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup"
+    shell:  "zcat {input} > {output}"
+ 

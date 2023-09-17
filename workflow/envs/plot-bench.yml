@@ -1,0 +1,10 @@
+name: grups-benchmark-plot-bench
+channels:
+  - conda-forge
+dependencies:
+  - conda-forge::r-base=4.1.2
+  - conda-forge::r-plotly=4.10.2
+  - conda-forge::r-lubridate=1.9.2
+  - conda-forge::r-reshape2=1.4.4
+  - conda-forge::r-stringr
+  - conda-forge::r-htmlwidgets
