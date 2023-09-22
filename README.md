@@ -47,8 +47,7 @@ This should:
   - Average pairwise SNP overlap: [2247, 4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
 6. Plot a 3D surface plot of the average runtime and maximum resident set size
 
-### Output:
-
+###### Output:
 - raw benchmark results should be located in `benchmarks`
 - 3D-surface plots should be located in `results/bench-plots`
 
@@ -66,14 +65,15 @@ conda activate snakemake-7.20.0
 snakemake pygrups_bench --cores 1 --use-conda --conda-frontend mamba --printshellcmds
 ```
 
-Raw benchmark results for PyGrups should be located in `benchmarks/pygrups`
+###### Output:
+- Raw benchmark results for PyGrups should be located in `benchmarks/pygrups`
 
 ## Applying GRUPS-rs on the Hazleton-North dataset
    
 **Note:** Due to the presence of 630 pairwise comparaisons and relatively high sequencing coverages for some individuals, Applying GRUPS-rs on the Hazleton-North dataset will require about ~32 GB of virtual memory. 
 
 1. Run the snakemake pipeline using the following command
-   ````bash
+   ```bash
    conda activate snakemake-7.20.0
    snakemake grups_rs_hazleton --cores `nproc` --use -conda --conda-frontend mamba --printshellcmds
    ```
@@ -84,16 +84,16 @@ Raw benchmark results for PyGrups should be located in `benchmarks/pygrups`
    3. Pileup these samples using samtools, while targeting the AADR v52.2 '1240K' snp callset.
    4. Apply GRUPS-rs on this pileup (`pedigree-pop: "EUR"`, `seq-error-rate: 0.0`, `reps: 1000`)
 
-2. Create a conda environment for jupyter-notebook:
+3. Create a conda environment for jupyter-notebook:
    ```bash
    conda env create -f envs/hazleton-analysis.yml
    bash envs/hazleton-analysis.post-deploy.sh
    ```
-3. Open and run the jupyter-notebook environment
+4. Open and run the jupyter-notebook environment
    ```bash
    conda activate hazleton-analysis
    jupyter-notebook ./notebooks
    ```
-
-Results and plots should be located in `results/hazleton`
+###### Output:
+- Results and plots should be located in `results/hazleton`
 
