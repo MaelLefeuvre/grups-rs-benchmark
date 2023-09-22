@@ -6,17 +6,12 @@ rule subset_1000g_samples_panel:
     input:
         panel = rules.fetch_samples_panel.output.panel
     output:
-        panel = expand("{directory}/integrated_call_samples_v3.20130502.{source}-{cont}.panel",
-            directory = dirname(rules.fetch_samples_panel.output.panel),
-            source    = config['kinship']['GRUPS']['pedigree-pop'],
-            cont      = config['kinship']['GRUPS']['contam-pop'],
+        panel = expand("{directory}/integrated_call_samples_v3.20130502.{{ped_pop}}-{{cont_pop}}.panel",
+            directory = dirname(rules.fetch_samples_panel.output.panel)
         )
-    params:
-        source = config['kinship']['GRUPS']['pedigree-pop'],
-        cont   = config['kinship']['GRUPS']['contam-pop'],
     threads: 1
     shell: """
-        grep -P '{params.source}|{params.cont}' {input.panel} > {output.panel}
+        grep -P '{wildcards.source}|{wildcards.cont}' {input.panel} > {output.panel}
     """
 
 
@@ -60,23 +55,20 @@ rule GRUPS_generate_fst_set:
     output:
         fst     = protected(expand(
             "data/fst/g1k-phase3-v5/{ped_pop}-{cont_pop}/ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes-{ped_pop}-{cont_pop}.{ext}",
-            ped_pop  = config["kinship"]["GRUPS"]["pedigree-pop"],
-            cont_pop = config["kinship"]["GRUPS"]["contam-pop"],
+            ped_pop  = "{ped_pop}",
+            cont_pop = "{cont_pop}",
             chrom    = range(1,23),
             ext      = ["fst", "fst.frq"]
         ))
-    params:
-        pedigree_pop = config["kinship"]["GRUPS"]["pedigree-pop"],
-        contam_pop   = config["kinship"]["GRUPS"]["contam-pop"]
-    log:       "logs/grups-rs/grups_generate_fst_set/{params.pedigree_pop}-{params.contam_pop}-GRUPS_generate_fst_set.log"
-    benchmark: "benchmarks/grups-rs/grups_generate_fst_set/{params.pedigree_pop}-{params.contam_pop}-GRUPS_generate_fst_set.tsv"
+    log:       "logs/grups-rs/grups_generate_fst_set/{ped_pop}-{cont_pop}-GRUPS_generate_fst_set.log"
+    benchmark: "benchmarks/grups-rs/grups_generate_fst_set/{ped_pop}-{cont_pop}-GRUPS_generate_fst_set.tsv"
     conda:     "../envs/grups-rs.yml"
     threads:   22
     shell: """
         grups fst \
         --vcf-dir $(dirname {input.data} | uniq) \
         --output-dir $(dirname {output.fst} | uniq) \
-        --pop-subset {params.pedigree_pop} {params.contam_pop} \
+        --pop-subset {wildcards.ped_pop} {wildcards.cont_pop} \
         --panel {input.panel} \
         --threads {threads} \
         --verbose > {log} 2>&1
@@ -86,8 +78,15 @@ rule GRUPS_generate_fst_set:
 rule run_GRUPS:
     input:
         pileup     = "results/input-pileups/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup",
-        data       = expand(rules.filter_1000g.output.vcf, chr=range(1,23)) if config["kinship"]["GRUPS"]["mode"] == "vcf" else rules.GRUPS_generate_fst_set.output.fst,
-        panel      = rules.subset_1000g_samples_panel.output.panel, 
+        data       = expand(rules.filter_1000g.output.vcf, chr=range(1,23)) if config["kinship"]["GRUPS"]["mode"] == "vcf" else expand(
+            rules.GRUPS_generate_fst_set.output.fst,
+            ped_pop  = config["kinship"]["GRUPS"]["pedigree-pop"],
+            cont_pop = config["kinship"]["GRUPS"]["contam-pop"]
+        ),
+        panel      = expand(rules.subset_1000g_samples_panel.output.panel,
+            ped_pop  = config["kinship"]["GRUPS"]["pedigree-pop"],
+            cont_pop = config["kinship"]["GRUPS"]["contam-pop"]
+        ),
         recomb_map = rules.download_hapmap.output.map,
         targets    = rules.download_reich_1240K.output.eigenstrat[0],
         pedigree   = config["kinship"]["GRUPS"]["pedigree"]

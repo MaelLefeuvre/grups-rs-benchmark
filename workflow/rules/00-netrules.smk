@@ -1,5 +1,6 @@
 configfile: "./config/config.yml"
 
+from os.path import basename, splitext
 
 rule download_1000_genomes:
     """
@@ -65,5 +66,19 @@ rule download_hapmap:
     threads: 1
     shell: """
         wget -qO- {params.tarball} | tar -xvzf- -C {params.output_dir} > {log} 2>&1
+    """
+
+rule download_reference_genome:
+    output:
+        reference = "data/reference/{file}".format(file = splitext(basename(config['ftp']['reference']))[0]),
+        fai       = "data/reference/{file}.fai".format(file=splitext(basename(config['ftp']['reference']))[0])
+    params:
+        url = config['ftp']['reference'],
+        fai = splitext(config['ftp']['reference'])[0] + ".fai"
+    shell: """
+        wget -qO {output.fai} {params.fai}
+        wget -qO {output.reference}.gz {params.url}
+        truncate -s 891946027 {output.reference}.gz
+        gunzip {output.reference}.gz
     """
 

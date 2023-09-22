@@ -1,0 +1,27 @@
+name: hazleton-analysis
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - conda-forge::jupyter=1.0.0
+  - conda-forge::r-base=4.1.3
+  - conda-forge::r-recommended=4.1
+  - conda-forge::r-irkernel=1.3.2
+  - conda-forge::r-readxl=1.4.2
+  - conda-forge::r-devtools=2.4.5
+  - conda-forge::r-ade4
+  - conda-forge::r-svglite
+  - conda-forge::r-plotly
+  - conda-forge::r-ggplot2
+  - conda-forge::r-ggpmisc
+  - conda-forge::r-ggtext
+  - conda-forge::r-dplyr
+  - conda-forge::r-magrittr
+  - conda-forge::r-stringr
+  - conda-forge::r-vegan
+  - conda-forge::r-caret
+  - conda-forge::r-patchwork
+  - conda-forge::r-future
+  - conda-forge::r-progressr
+
+

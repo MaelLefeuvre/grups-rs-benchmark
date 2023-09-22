@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-BUILD_DIR="workflow/scripts/grups/target"
+set -euo pipefail
+
+BUILD_DIR="workflow/scripts/grups-rs/target"
 [[ -d ${BUILD_DIR} ]] && rm -rf ${BUILD_DIR}
 
 

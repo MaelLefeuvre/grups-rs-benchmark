@@ -1,6 +1,7 @@
 include: "rules/00-netrules.smk"
 include: "rules/grups-rs.smk"
 include: "rules/pygrups.smk"
+include: "rules/hazleton-bench.smk"
 configfile: "./config/config.yml"
 
 

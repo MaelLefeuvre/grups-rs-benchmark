@@ -1,4 +1,6 @@
 ftp:
+  #reference: "ftp.ensembl.org/pub/grch37/current/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa"
+  reference:  "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
   1000g-url:  "ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502"
   1240k-url:  "https://reichdata.hms.harvard.edu/pub/datasets/amh_repo/curated_releases/V52/V52.2/SHARE/public.dir/v52.2_1240K_public.tar"
   hapmap-url: "http://ftp.ncbi.nlm.nih.gov/hapmap/recombination/2011-01_phaseII_B37/genetic_map_HapMapII_GRCh37.tar.gz"
@@ -32,17 +34,17 @@ kinship:
       - "ped1_g3-b1-i1"
       - "ped1_g3-b2-i1"
   pygrups:
-    min-depth:   1
-    min-qual:    20
+    min-depth:         1
+    min-qual:          20
     pwd-from-stdin:
-      reps:        20
-      ignore-dels: True
+      reps:            20
+      ignore-dels:     True
     pedigree-sims:
-      pedigree-pop: "EUR"
-      contam-pop: "AFR"
+      pedigree-pop:    "EUR"
+      contam-pop:      "AFR"
       downsample-rate: 1.0
-      contam-rate: 0.0
-      seq-error-rate: 0.0
-      reps: 1
-      labels: Ind1,Ind2
+      contam-rate:     0.0
+      seq-error-rate:  0.0
+      reps:            1
+      labels:          Ind1,Ind2
 
