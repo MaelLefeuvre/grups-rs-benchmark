@@ -54,16 +54,19 @@ rule GRUPS_rs_hazleton:
         targets    = rules.download_reich_1240K.output.eigenstrat[0],
         pedigree   = "workflow/scripts/grups-rs/resources/pedigrees/extended_pedigree.txt",
     output:
-        output_dir = "results/hazleton/02-run-grups/grups-rs-hazleton-north"
+        output_dir = directory("results/hazleton/02-run-grups/grups-rs-hazleton-north"),
+        pwd        =           "results/hazleton/02-run-grups/grups-rs-hazleton-north/hazleton.RBq25Q25.1240K.pwd",
+        results    = "results/hazleton/02-run-grups/grups-rs-hazleton-north/hazleton.RBq25Q25.1240K.result",
+
     params:
-        data_dir     = lambda w, input: dirname(input.data[0]),
-        recomb_dir   = lambda w, input: dirname(input.recomb_map[0]),
-        pedigree_pop = "EUR",
-        contam_pop   = "AFR",
+        data_dir       = lambda w, input: dirname(input.data[0]),
+        recomb_dir     = lambda w, input: dirname(input.recomb_map[0]),
+        pedigree_pop   = "EUR",
+        contam_pop     = "AFR",
         seq_error_rate = 0.0,
-        mode         = "fst",
-        reps         = 1000,
-        seed         = 6118104365963088254
+        mode           = "fst",
+        reps           = 1000,
+        seed           = 6118104365963088254
     log:       "logs/grups-rs-hazleton/GRUPS_rs_hazleton.log"
     benchmark: "benchmarks/grups-rs-hazleton/GRUPS_rs_hazleton.tsv"
     conda:     "../envs/grups-rs.yml"
@@ -86,5 +89,5 @@ rule GRUPS_rs_hazleton:
         --ignore-dels \
         --print-blocks \
         --overwrite \
-        --quiet > {log} 2>&1
+        --verbose > {log} 2>&1
     """

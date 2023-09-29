@@ -1,5 +1,5 @@
 /.snakemake
-/.ipynb_checkpoints
+.ipynb_checkpoints/
 /results
 /backup-results
 /benchmarks

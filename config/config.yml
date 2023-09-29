@@ -1,5 +1,4 @@
 ftp:
-  #reference: "ftp.ensembl.org/pub/grch37/current/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa"
   reference:  "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
   1000g-url:  "ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502"
   1240k-url:  "https://reichdata.hms.harvard.edu/pub/datasets/amh_repo/curated_releases/V52/V52.2/SHARE/public.dir/v52.2_1240K_public.tar"
@@ -9,13 +8,11 @@ kinship:
   GRUPS:
     path:                    "workflow/bin/20230302-grups"
     pedigree:                "resources/simple_pedigree.txt"
-    #data-dir:                "data/binary-fst"
-    #data-dir:                "/home/mlefeuvre/temp-g1k-vcf"
     recomb-dir:              "data/HapMapII_GRCh37"
     pedigree-pop:            "EUR"
     contam-pop:              "AFR"
     min-depth:               1
-    #mode:                    "fst-mmap"
+    mode:                    "fst-mmap"
     mode:                    "vcf"
     reps:                    500
     maf:                     0.05
