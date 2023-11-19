@@ -2,17 +2,26 @@ include: "rules/00-netrules.smk"
 include: "rules/grups-rs.smk"
 include: "rules/pygrups.smk"
 include: "rules/hazleton-bench.smk"
+include: "rules/koszyce-bench.smk"
 configfile: "./config/config.yml"
 
-
+SNPs     = [2247, 4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
 
 rule grups_rs_bench:
     input:
         expand("results/{coverage}X/{SNPs}/{rep}/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pwd",
             coverage = "1",
             rep      = [i+1 for i in range(0, config['kinship']['GRUPS']['max-samples'])],
-            SNPs     = [2247, 4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
-        )
+            SNPs     = SNPs
+
+        ),
+        expand("benchmarks/run_GRUPS-{coverage}X-{SNPs}-{rep}.log",
+            coverage = "1",
+            rep      = [i+1 for i in range(0, config['kinship']['GRUPS']['max-samples'])],
+            SNPs     = SNPs
+        ),
+
+
 
 rule plot_bench:
     default_target: True
@@ -31,7 +40,7 @@ rule pygrups_bench:
     input:
         expand(rules.pygrups_pedigree_sims.output.done,
             coverage = "1",
-			SNPs     = [2247,4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
+			SNPs     = SNPs
         )
 
 rule untar_original_data:

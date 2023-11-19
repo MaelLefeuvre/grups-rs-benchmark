@@ -75,7 +75,7 @@ snakemake pygrups_bench --cores 1 --use-conda --conda-frontend mamba --printshel
 1. Run the snakemake pipeline using the following command
    ```bash
    conda activate snakemake-7.20.0
-   snakemake grups_rs_hazleton --cores `nproc` --use -conda --conda-frontend mamba --printshellcmds
+   snakemake grups_rs_hazleton --cores `nproc` --use-conda --conda-frontend mamba --printshellcmds
    ```
 
    This should:

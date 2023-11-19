@@ -1,14 +1,14 @@
 configfile: "./config/config.yml"
-configfile: "./config/hazleton-bench.yml"
+configfile: "./config/bam-urls.yml"
 
 from os.path import basename
 
 
 rule download_hazleton_bams:
     params:
-        urls = config["hazleton"]["bams-urls"]
+        urls = config["hazleton-bams"]
     output:
-        bams = expand("data/hazleton-bams/{bam}", bam=[basename(url) for url in config['hazleton']['bams-urls']])
+        bams = expand("data/hazleton-bams/{bam}", bam=[basename(url) for url in config['hazleton-bams']])
     threads: 8
     shell: """
         for url in {params.urls}; do
@@ -45,7 +45,7 @@ rule pileup_hazleton_bams:
         -b {input.bamlist} > {output.pileup}
     """
 
-rule GRUPS_rs_hazleton:
+rule grups_rs_hazleton:
     input:
         pileup     = expand(rules.pileup_hazleton_bams.output.pileup, bq=25, mq=25),
         bamlist    = rules.create_hazleton_bamlist.output.bamlist,

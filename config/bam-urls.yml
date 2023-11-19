@@ -1,5 +1,4 @@
-hazleton:
-  bams-urls:
+hazleton-bams:
   - "ftp.sra.ebi.ac.uk/vol1/run/ERR701/ERR7013314/NE2m_hg19.bam"
   - "ftp.sra.ebi.ac.uk/vol1/run/ERR701/ERR7013316/SC3m_hg19.bam"
   - "ftp.sra.ebi.ac.uk/vol1/run/ERR701/ERR7013318/NC9m_hg19.bam"
@@ -35,3 +34,11 @@ hazleton:
   - "ftp.sra.ebi.ac.uk/vol1/run/ERR701/ERR7013378/SC7m_hg19.bam"
   - "ftp.sra.ebi.ac.uk/vol1/run/ERR701/ERR7013380/SE2m_hg19.bam"
   - "ftp.sra.ebi.ac.uk/vol1/run/ERR701/ERR7013382/NC3f_hg19.bam"
+koszyce-bams:
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503725/Koszyce-3_1_final.bam"
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503726/Koszyce-3_2_final.bam"
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503729/Koszyce-3_5_final.bam"
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503734/Koszyce-3_10_final.bam"
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503735/Koszyce-3_11_final.bam"
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503738/Koszyce-3_14_final.bam"
+  - "ftp.sra.ebi.ac.uk/vol1/run/ERR350/ERR3503739/Koszyce-3_15_final.bam"

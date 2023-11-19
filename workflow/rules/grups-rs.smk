@@ -6,8 +6,10 @@ rule subset_1000g_samples_panel:
     input:
         panel = rules.fetch_samples_panel.output.panel
     output:
-        panel = expand("{directory}/integrated_call_samples_v3.20130502.{{ped_pop}}-{{cont_pop}}.panel",
-            directory = dirname(rules.fetch_samples_panel.output.panel)
+        panel = expand("{directory}/integrated_call_samples_v3.20130502.{source}-{cont}.panel",
+            directory = dirname(rules.fetch_samples_panel.output.panel),
+            source = "{source}",
+            cont = "{cont}"
         )
     threads: 1
     shell: """
@@ -18,7 +20,10 @@ rule subset_1000g_samples_panel:
 rule filter_1000g:
     input:
         vcf   = rules.download_1000_genomes.output.vcf,
-        panel = rules.subset_1000g_samples_panel.output.panel,
+        panel = expand(rules.subset_1000g_samples_panel.output.panel,
+            source = config['kinship']['GRUPS']['pedigree-pop'],
+            cont   = config['kinship']['GRUPS']['contam-pop']
+        )
     output:
         vcf = expand("data/1000g-phase3/01-filtered/{source}-{cont}.chr{{chr}}.phase3_shapeit2_mvncall_integrated_v5b.20130502.snps.vcf.gz",
             source = config['kinship']['GRUPS']['pedigree-pop'],
@@ -84,8 +89,8 @@ rule run_GRUPS:
             cont_pop = config["kinship"]["GRUPS"]["contam-pop"]
         ),
         panel      = expand(rules.subset_1000g_samples_panel.output.panel,
-            ped_pop  = config["kinship"]["GRUPS"]["pedigree-pop"],
-            cont_pop = config["kinship"]["GRUPS"]["contam-pop"]
+            source  = config["kinship"]["GRUPS"]["pedigree-pop"],
+            cont = config["kinship"]["GRUPS"]["contam-pop"]
         ),
         recomb_map = rules.download_hapmap.output.map,
         targets    = rules.download_reich_1240K.output.eigenstrat[0],

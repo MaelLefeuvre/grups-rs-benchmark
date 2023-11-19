@@ -13,7 +13,6 @@ kinship:
     contam-pop:              "AFR"
     min-depth:               1
     mode:                    "fst-mmap"
-    mode:                    "vcf"
     reps:                    500
     maf:                     0.05
     min-qual:                20
