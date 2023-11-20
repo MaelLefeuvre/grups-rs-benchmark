@@ -1,46 +1,49 @@
 ftp:
+  # Automatically downloaded and processed into ./data/
   reference:  "http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz"
   1000g-url:  "ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502"
   1240k-url:  "https://reichdata.hms.harvard.edu/pub/datasets/amh_repo/curated_releases/V52/V52.2/SHARE/public.dir/v52.2_1240K_public.tar"
   hapmap-url: "http://ftp.ncbi.nlm.nih.gov/hapmap/recombination/2011-01_phaseII_B37/genetic_map_HapMapII_GRCh37.tar.gz"
-kinship:
-  targets:                   "data/targets/v52.2_1240K_public.snp"
-  GRUPS:
-    path:                    "workflow/bin/20230302-grups"
-    pedigree:                "resources/simple_pedigree.txt"
-    recomb-dir:              "data/HapMapII_GRCh37"
-    pedigree-pop:            "EUR"
-    contam-pop:              "AFR"
-    min-depth:               1
-    mode:                    "fst-mmap"
-    reps:                    500
-    maf:                     0.05
-    min-qual:                20
-    max-samples:             10
-    sample-names:
-      - "ped1_g1-b1-i1"
-      - "ped1_g1-b2-i1"
-      - "ped1_g1-b3-i1"
-      - "ped1_g2-b1-i1"
-      - "ped1_g2-b1-s1"
-      - "ped1_G2-B1-S1"
-      - "ped1_g2-b2-i1"
-      - "ped1_g2-b2-s1"
-      - "ped1_g2-b3-i1"
-      - "ped1_g3-b1-i1"
-      - "ped1_g3-b2-i1"
-  pygrups:
-    min-depth:         1
-    min-qual:          20
-    pwd-from-stdin:
-      reps:            20
-      ignore-dels:     True
-    pedigree-sims:
-      pedigree-pop:    "EUR"
-      contam-pop:      "AFR"
-      downsample-rate: 1.0
-      contam-rate:     0.0
-      seq-error-rate:  0.0
-      reps:            1
-      labels:          Ind1,Ind2
+bench:
+  # input-pileup must adhere to the following naming convention: 'original-data/<depth>X-<free-description>-<overlap>.pileup.gz'
+  input-pileup:              "original-data/1X-EUR-pedigree-1240K.qQ20.L70-1150354.pileup.gz" 
+  n-subsamples:              10  # Number of cascading subsamples, starting from the original overlap
+  bench-replicates:          10  # Number of benchmark replicates when testing the RSS and runtime of grups-rs
+grups-rs:
+  max-samples:             10                               # Maximum number of samples to include in the benchmark (0-based)
+  pedigree:                "resources/simple_pedigree.txt"
+  pedigree-pop:            "EUR"
+  contam-pop:              "AFR"
+  min-depth:               1
+  mode:                    "fst-mmap"
+  reps:                    500
+  maf:                     0.05
+  min-qual:                20
+  seed:                    42
+  sample-names:
+    - "ped1_g1-b1-i1"
+    - "ped1_g1-b2-i1"
+    - "ped1_g1-b3-i1"
+    - "ped1_g2-b1-i1"
+    - "ped1_g2-b1-s1"
+    - "ped1_G2-B1-S1"
+    - "ped1_g2-b2-i1"
+    - "ped1_g2-b2-s1"
+    - "ped1_g2-b3-i1"
+    - "ped1_g3-b1-i1"
+    - "ped1_g3-b2-i1"
+pygrups:
+  min-depth:         1
+  min-qual:          20
+  pwd-from-stdin:
+    reps:            20
+    ignore-dels:     True
+  pedigree-sims:
+    pedigree-pop:    "EUR"
+    contam-pop:      "AFR"
+    downsample-rate: 1.0
+    contam-rate:     0.0
+    seq-error-rate:  0.0
+    reps:            1
+    labels:          Ind1,Ind2
 

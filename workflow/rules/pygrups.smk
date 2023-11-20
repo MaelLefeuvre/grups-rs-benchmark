@@ -1,14 +1,13 @@
-
 rule get_observed_pwd:
     input:
-        pileup = "results/input-pileups/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup", 
+        pileup      = "results/input-pileups/{depth}X-EUR-pedigree-1240K.qQ20.L70-{overlap}.pileup", 
     output:
-        pwd    = "results/pygrups/{coverage}X/{SNPs}/pwd-distributions/pwd-from-stdin.out"
+        pwd         = "results/pygrups/{depth}X/{overlap}/pwd-distributions/pwd-from-stdin.out"
     params:
-        reps = config['kinship']['pygrups']['pwd-from-stdin']['reps'],
-        min_depth = config['kinship']['pygrups']['min-depth'],
-        min_qual = config['kinship']['pygrups']['min-qual'],
-        ignore_dels = 1 if config['kinship']['pygrups']['pwd-from-stdin']['ignore-dels'] == True else 0
+        reps        = config['pygrups']['pwd-from-stdin']['reps'],
+        min_depth   = config['pygrups']['min-depth'],
+        min_qual    = config['pygrups']['min-qual'],
+        ignore_dels = 1 if config['pygrups']['pwd-from-stdin']['ignore-dels'] == True else 0
     conda: "../envs/pygrups.yml"
     threads: 1
     shell: """
@@ -17,11 +16,12 @@ rule get_observed_pwd:
         done
     """
 
+
 rule compute_summary_stats:
     input:
-        pwd = rules.get_observed_pwd.output.pwd
+        pwd   = rules.get_observed_pwd.output.pwd
     output:
-        stats = "results/pygrups/{coverage}X/{SNPs}/pwd-distributions/pwd-from-stdin.stats"
+        stats = "results/pygrups/{depth}X/{overlap}/pwd-distributions/pwd-from-stdin.stats"
     conda: "../envs/pygrups.yml"
     threads: 1
     shell: """
@@ -38,28 +38,30 @@ rule compute_summary_stats:
         }}' > {output.stats}
     """
 
+
 rule filter_sites:
     input:
-        pileup = rules.get_observed_pwd.input.pileup
+        pileup      = rules.get_observed_pwd.input.pileup
     output:
-        pileup = "results/pygrups/{coverage}X/{SNPs}/filtered-pileups/pwd-from-stdin-simspecific.pileup.gz"
+        pileup      = "results/pygrups/{depth}X/{overlap}/filtered-pileups/pwd-from-stdin-simspecific.pileup.gz"
     params:
-        min_depth = config['kinship']['pygrups']['min-depth'],
-        min_qual = config['kinship']['pygrups']['min-qual'],
-        ignore_dels = 1 if config['kinship']['pygrups']['pwd-from-stdin']['ignore-dels'] == True else 0
+        min_depth   = config['pygrups']['min-depth'],
+        min_qual    = config['pygrups']['min-qual'],
+        ignore_dels = 1 if config['pygrups']['pwd-from-stdin']['ignore-dels'] == True else 0
     conda: "../envs/pygrups.yml"
     threads: 1
     shell: """
         cat {input.pileup} | PWD_from_stdin.py --chr 1-22 --min_depth {params.min_depth},{params.min_depth} --min_qual {params.min_qual} --ignore_dels {params.ignore_dels} --quiet 1 --filter_sites 1 | gzip > {output.pileup}
     """
 
+
 rule split_sites:
     input:
         pileup  = rules.filter_sites.output.pileup
     output:
-        pileups = expand("results/pygrups/{{coverage}}X/{{SNPs}}/filtered-pileups/pwd-from-stdin-simspecific.pileup.chr{chr}.gz", chr=range(1,23))
+        pileups = expand("results/pygrups/{{depth}}X/{{overlap}}/filtered-pileups/pwd-from-stdin-simspecific.pileup.chr{chr}.gz", chr=range(1,23))
     params:
-        out_dir = "results/pygrups/{coverage}X/{SNPs}/filtered-pileups/"
+        out_dir = "results/pygrups/{depth}X/{overlap}/filtered-pileups/"
     threads: 1
     shell: """
         mkdir -p {params.out_dir};
@@ -68,17 +70,18 @@ rule split_sites:
         done
     """
 
+
 rule symlink_1000g_dataset:
     input:
-        vcf = expand(rules.filter_1000g.output.vcf, chr=range(1,23)),
-        tbi = expand([vcf + ".tbi" for vcf in rules.filter_1000g.output.vcf], chr=range(1, 23))
+        vcf      = expand(rules.filter_1000g.output.vcf, chr=range(1,23)),
+        tbi      = expand([vcf + ".tbi" for vcf in rules.filter_1000g.output.vcf], chr=range(1, 23))
     output:
         symlinks = expand("data/1000g-phase3/02-symlinked/ALL.chr{chr}.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz",
           chr    = range(1, 23)
         ),
         symdir   = directory("data/1000g-phase3/02-symlinked")
     params:
-        poptag   = config['kinship']['pygrups']['pedigree-sims']['pedigree-pop'] + "-" + config['kinship']['pygrups']['pedigree-sims']['contam-pop']
+        poptag   = config['pygrups']['pedigree-sims']['pedigree-pop'] + "-" + config['pygrups']['pedigree-sims']['contam-pop']
     threads: 1
     shell: """
         echo {params.poptag}; \
@@ -91,6 +94,7 @@ rule symlink_1000g_dataset:
         done
     """
 
+
 rule pygrups_pedigree_sims:
     input:
         pileup     = rules.filter_sites.output.pileup,
@@ -100,20 +104,20 @@ rule pygrups_pedigree_sims:
         data_dir   = dirname(rules.symlink_1000g_dataset.output.symlinks[0]),
         recomb_dir = dirname(rules.download_hapmap.output.map[0]),
     output:
-        done = touch("results/pygrups/{coverage}X/{SNPs}/pedigree-sims/pedigree-sims.done")
+        done       = touch("results/pygrups/{depth}X/{overlap}/pedigree-sims/pedigree-sims.done")
     params:
-        out_dir    = "results/pygrups/{coverage}X/{SNPs}/pedigree-sims/",
-        ped_pop    = config['kinship']['pygrups']['pedigree-sims']['pedigree-pop'],
-        contam_pop = config['kinship']['pygrups']['pedigree-sims']['contam-pop'],
-        ds_rate    = config['kinship']['pygrups']['pedigree-sims']['downsample-rate'],
-        c_rate     = config['kinship']['pygrups']['pedigree-sims']['contam-rate'],
-        q_rate     = config['kinship']['pygrups']['pedigree-sims']['seq-error-rate'],
-        reps       = config['kinship']['pygrups']['pedigree-sims']['reps'],
-        label      = config['kinship']['pygrups']['pedigree-sims']['labels'],
-        min_qual   = config['kinship']['pygrups']['min-qual'],
-    log: "logs/pygrups/pygrups_pedigree_sims-{coverage}X-{SNPs}.log"
-    benchmark: "benchmarks/pygrups/pygrups_pedigree_sims-{coverage}X-{SNPs}.tsv"
-    conda: "../envs/pygrups.yml"
+        out_dir    = "results/pygrups/{depth}X/{overlap}/pedigree-sims/",
+        ped_pop    = config['pygrups']['pedigree-sims']['pedigree-pop'],
+        contam_pop = config['pygrups']['pedigree-sims']['contam-pop'],
+        ds_rate    = config['pygrups']['pedigree-sims']['downsample-rate'],
+        c_rate     = config['pygrups']['pedigree-sims']['contam-rate'],
+        q_rate     = config['pygrups']['pedigree-sims']['seq-error-rate'],
+        reps       = config['pygrups']['pedigree-sims']['reps'],
+        label      = config['pygrups']['pedigree-sims']['labels'],
+        min_qual   = config['pygrups']['min-qual'],
+    log:       "logs/pygrups/pygrups_pedigree_sims-{depth}X-{overlap}.log"
+    benchmark: "benchmarks/pygrups/pygrups_pedigree_sims-{depth}X-{overlap}.tsv"
+    conda:     "../envs/pygrups.yml"
     threads: 1
     shell: """
         pedigree_sims.py \
@@ -132,3 +136,4 @@ rule pygrups_pedigree_sims:
         --contam_pop {params.contam_pop},{params.contam_pop} \
         > {log} 2>&1
     """
+

@@ -18,6 +18,7 @@ rule download_hazleton_bams:
         done
     """
 
+
 rule create_hazleton_bamlist:
     input:
         bams      = rules.download_hazleton_bams.output.bams,
@@ -45,6 +46,7 @@ rule pileup_hazleton_bams:
         -b {input.bamlist} > {output.pileup}
     """
 
+
 rule grups_rs_hazleton:
     input:
         pileup     = expand(rules.pileup_hazleton_bams.output.pileup, bq=25, mq=25),
@@ -71,7 +73,7 @@ rule grups_rs_hazleton:
     benchmark: "benchmarks/grups-rs-hazleton/GRUPS_rs_hazleton.tsv"
     conda:     "../envs/grups-rs.yml"
     shell: """
-    grups pedigree-sims \
+        grups pedigree-sims \
         --pileup {input.pileup} \
         --data-dir {params.data_dir} \
         --recomb-dir {params.recomb_dir} \

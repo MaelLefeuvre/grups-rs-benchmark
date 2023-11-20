@@ -1,50 +1,72 @@
 include: "rules/00-netrules.smk"
+include: "rules/00-common.smk"
 include: "rules/grups-rs.smk"
 include: "rules/pygrups.smk"
 include: "rules/hazleton-bench.smk"
 include: "rules/koszyce-bench.smk"
+include: "rules/subsample-pileup.smk"
 configfile: "./config/config.yml"
 
-SNPs     = [2247, 4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
+wildcard_constraints:
+    overlap = '[0-9]+',
+    id      = '[0-9]+',
+    depth   = '[0-9]',
+    nsamples = '[0-9]+',
 
-rule grups_rs_bench:
+
+rule bench_runtime:
     input:
-        expand("results/{coverage}X/{SNPs}/{rep}/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pwd",
-            coverage = "1",
-            rep      = [i+1 for i in range(0, config['kinship']['GRUPS']['max-samples'])],
-            SNPs     = SNPs
-
-        ),
-        expand("benchmarks/run_GRUPS-{coverage}X-{SNPs}-{rep}.log",
-            coverage = "1",
-            rep      = [i+1 for i in range(0, config['kinship']['GRUPS']['max-samples'])],
-            SNPs     = SNPs
-        ),
-
+        expand("results/{depth}X/{overlap}/{nsamples}/{description}-{id}/{depth}X-{description}-{overlap}.{id}.pwd",
+            depth       = get_depth(),
+            description = get_description(),
+            nsamples    = [i+1 for i in range(0, config['grups-rs']['max-samples'])],
+            overlap     = get_overlap_list(),
+            id          = 0
+        )
 
 
 rule plot_bench:
     default_target: True
     input:
-        benches = rules.grups_rs_bench.input
+        benches = rules.bench_runtime.input
     output:
         hms_runtime_plot = "results/bench-plots/runtime-hms-3d-scatterplot.html",
         rss_runtime_plot = "results/bench-plots/runtime-rss-3d-scatterplot.html"
+    params:
+        bench_dir  = "benchmarks/grups-rs-bench/1X/",
+        output_dir = lambda w, output: dirname(output.hms_runtime_plot),
+        pattern    = '.*[.]0[.]log$'
     conda: "envs/plot-bench.yml"
     shell: """
-        workflow/scripts/plot-bench.R benchmarks/ results/bench-plots/
+        workflow/scripts/plot-bench.R {params.bench_dir} {params.output_dir} '{params.pattern}'
     """
 
 
-rule pygrups_bench:
+rule bench_accuracy:
     input:
-        expand(rules.pygrups_pedigree_sims.output.done,
-            coverage = "1",
-			SNPs     = SNPs
+        expand(
+            expand("results/{depth}X/{{overlap}}/{nsamples}/{description}-{{id}}/{depth}X-{description}-{{overlap}}.{{id}}.pwd",
+                depth       = get_depth(),
+                description = get_description(),
+                nsamples    = config['grups-rs']['max-samples'],
+            ),
+            zip,
+            overlap  = [get_base_overlap()] + compute_overlap_powerlist(),
+            id       = [0] + compute_subsample_ids_powerlist(),
         )
 
-rule untar_original_data:
-    input:  "original-data/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup.gz"
-    output: "results/input-pileups/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup"
-    shell:  "zcat {input} > {output}"
- 
+
+rule bench_pygrups:
+    input:
+        expand(rules.pygrups_pedigree_sims.output.done,
+            depth    = get_depth(),
+            overlap  = get_overlap_list()
+        )
+
+
+rule koszyce:
+    input: rules.grups_rs_koszyce.output
+
+
+rule hazleton:
+    input: rules.grups_rs_hazleton.output

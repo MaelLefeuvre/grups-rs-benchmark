@@ -1,6 +1,11 @@
 configfile: "./config/config.yml"
 
 from os.path import dirname
+import sys
+
+def get_bench_replicates():
+    1 if "grups_rs_perf_bench" in sys.argv else config['bench']['bench-replicates']
+
 
 rule subset_1000g_samples_panel:
     input:
@@ -21,19 +26,20 @@ rule filter_1000g:
     input:
         vcf   = rules.download_1000_genomes.output.vcf,
         panel = expand(rules.subset_1000g_samples_panel.output.panel,
-            source = config['kinship']['GRUPS']['pedigree-pop'],
-            cont   = config['kinship']['GRUPS']['contam-pop']
+            source = config['grups-rs']['pedigree-pop'],
+            cont   = config['grups-rs']['contam-pop']
         )
     output:
         vcf = expand("data/1000g-phase3/01-filtered/{source}-{cont}.chr{{chr}}.phase3_shapeit2_mvncall_integrated_v5b.20130502.snps.vcf.gz",
-            source = config['kinship']['GRUPS']['pedigree-pop'],
-            cont   = config['kinship']['GRUPS']['contam-pop']
+            source = config['grups-rs']['pedigree-pop'],
+            cont   = config['grups-rs']['contam-pop']
         )
     conda: "../envs/bcftools-1.15.yml"
     threads: 1
     shell: """
         bcftools view --threads {threads} -vsnps -m2 -M2 -S <(awk '{{print $1}}' {input.panel}) -Oz -o {output.vcf} {input.vcf}
     """
+
 
 rule tabix:
     input:
@@ -47,7 +53,6 @@ rule tabix:
     shell: """
         tabix {input.vcf}
     """
-
 
 
 rule GRUPS_generate_fst_set:
@@ -82,42 +87,42 @@ rule GRUPS_generate_fst_set:
 
 rule run_GRUPS:
     input:
-        pileup     = "results/input-pileups/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}.pileup",
-        data       = expand(rules.filter_1000g.output.vcf, chr=range(1,23)) if config["kinship"]["GRUPS"]["mode"] == "vcf" else expand(
+        pileup     = "results/input-pileups/{overlap}/{depth}X-{description}-{overlap}.{id}.pileup",
+        data       = expand(rules.filter_1000g.output.vcf, chr=range(1,23)) if config['grups-rs']['mode'] == "vcf" else expand(
             rules.GRUPS_generate_fst_set.output.fst,
-            ped_pop  = config["kinship"]["GRUPS"]["pedigree-pop"],
-            cont_pop = config["kinship"]["GRUPS"]["contam-pop"]
+            ped_pop  = config['grups-rs']['pedigree-pop'],
+            cont_pop = config['grups-rs']['contam-pop']
         ),
         panel      = expand(rules.subset_1000g_samples_panel.output.panel,
-            source  = config["kinship"]["GRUPS"]["pedigree-pop"],
-            cont = config["kinship"]["GRUPS"]["contam-pop"]
+            source = config['grups-rs']['pedigree-pop'],
+            cont   = config['grups-rs']['contam-pop']
         ),
         recomb_map = rules.download_hapmap.output.map,
         targets    = rules.download_reich_1240K.output.eigenstrat[0],
-        pedigree   = config["kinship"]["GRUPS"]["pedigree"]
+        pedigree   = config['grups-rs']['pedigree']
     output:
-        output_dir   = directory("results/{coverage}X/{SNPs}/{rep}/"),
-        results      = multiext("results/{coverage}X/{SNPs}/{rep}/{coverage}X-EUR-pedigree-1240K.qQ20.L70-{SNPs}", ".pwd", ".result")
+        output_dir   = directory("results/{depth}X/{overlap}/{nsamples}/{description}-{id}/"),
+        results      = multiext("results/{depth}X/{overlap}/{nsamples}/{description}-{id}/{depth}X-{description}-{overlap}.{id}", ".pwd", ".result")
     params:
-        sample_names = config['kinship']['GRUPS']['sample-names'],
+        sample_names = config['grups-rs']['sample-names'],
         data_dir     = lambda wildcards, input: dirname(input.data[0]),
         recomb_dir   = lambda wildcards, input: dirname(input.recomb_map[0]),
-        pedigree_pop = config["kinship"]["GRUPS"]["pedigree-pop"],
-        contam_pop   = config["kinship"]["GRUPS"]["contam-pop"],
-        reps         = config["kinship"]["GRUPS"]["reps"],
-        mode         = config["kinship"]["GRUPS"]["mode"],
-        min_depth    = config["kinship"]["GRUPS"]["min-depth"],
-        min_quality  = config["kinship"]["GRUPS"]["min-qual"],     
-        maf          = config["kinship"]["GRUPS"]["maf"],
-        grups        = config["kinship"]["GRUPS"]["path"]
+        pedigree_pop = config['grups-rs']['pedigree-pop'],
+        contam_pop   = config['grups-rs']['contam-pop'],
+        reps         = config['grups-rs']['reps'],
+        mode         = config['grups-rs']['mode'],
+        min_depth    = config['grups-rs']['min-depth'],
+        min_quality  = config['grups-rs']['min-qual'],
+        maf          = config['grups-rs']['maf'],
+        seed         = config['grups-rs']['seed']
     resources:
         # Crude estimation, based on a previous benchmark
-        mem_mb       = lambda w: (int(w.SNPs) * 0.001898) + 1900
-    log: "logs/run_GRUPS-{coverage}X-{SNPs}-{rep}.log"
-    benchmark: repeat("benchmarks/run_GRUPS-{coverage}X-{SNPs}-{rep}.log", 10)
+        mem_mb       = lambda w: (int(w.overlap) * 0.001898) + 1900
+    log: "logs/grups-rs-bench/{depth}X/{overlap}/{description}-{nsamples}.{id}.log"
+    benchmark: repeat("benchmarks/grups-rs-bench/{depth}X/{overlap}/{description}-{nsamples}.{id}.log", get_bench_replicates())
     conda: "../envs/grups-rs.yml"
     shell: """
-        grups pedigree-sims \
+        grups-rs pedigree-sims \
         --pileup {input.pileup} \
         --data-dir {params.data_dir} \
         --panel {input.panel} \
@@ -126,16 +131,14 @@ rule run_GRUPS:
         --pedigree-pop {params.pedigree_pop} \
         --contam-pop {params.contam_pop} \
         --min-depth {params.min_depth} \
-        --samples 0-{wildcards.rep} \
+        --samples 0-{wildcards.nsamples} \
         --sample-names {params.sample_names} \
         --reps {params.reps} \
         --mode {params.mode} \
         --output-dir {output.output_dir} \
         --maf {params.maf} \
         --min-qual {params.min_quality} \
-        --print-blocks \
+        --seed {params.seed} \
         --overwrite \
         --quiet > {log} 2>&1
     """
-
-

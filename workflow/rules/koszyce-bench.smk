@@ -4,11 +4,13 @@ configfile: "./config/bam-urls.yml"
 from os.path import basename
 import re
 
+
 def search_koszyce_url(wildcards):
     for url in config['koszyce-bams']:
         if wildcards.sample in url:
             return url
     raise RuntimeError(f"Cannot find wildcard {wildcards.sample} in urls")
+
 
 rule download_koszyce_bams:
     params:
@@ -20,6 +22,7 @@ rule download_koszyce_bams:
         echo Downloading {output.bam} using {params.url}
         wget -qO {output.bam} {params.url}
     """
+
 
 rule samtools_index:
     input: "{bam}"
@@ -57,6 +60,7 @@ def match_position(file, threshold=0.01):
                 continue # header
         return pos
 
+
 rule trimbam_koszyce:
     input:
         bam         = rules.download_koszyce_bams.output.bam,
@@ -74,6 +78,7 @@ rule trimbam_koszyce:
         bam trimBam {input.bam} {output.bam} --left {params.left} --right {params.right} > {log} 2>&1
     """
 
+
 rule create_koszyce_bamlist:
     input:
         bams = expand(rules.trimbam_koszyce.output.bam, sample = [basename(url).removesuffix('.bam') for url in config['koszyce-bams']])
@@ -82,6 +87,7 @@ rule create_koszyce_bamlist:
     shell: """
         ls -1 {input.bams} | LC_ALL=C sort -n -k2 -t_ > {output.bamlist}
     """
+
 
 rule pileup_koszyce_bams:
     input:
@@ -100,11 +106,13 @@ rule pileup_koszyce_bams:
         -b {input.bamlist} > {output.pileup}
     """
 
+
 def parse_sample_names(wildcards, input):
     regex = re.compile(r'Koszyce-3_[0-9]+')
     remove = 'oszyce-3_'
     with open(input.bamlist, "r") as bams:
         return [regex.search(basename(bam.strip())).group().replace(remove, '') for bam in bams]
+
 
 rule grups_rs_koszyce:
     input:
@@ -127,13 +135,13 @@ rule grups_rs_koszyce:
         contam_pop     = "EUR",
         seq_error_rate = 0.0,
         reps           = 500,
-        seed           = 42,
+        seed           = config['grups-rs']['seed'],
         sample_names   = lambda w, input : parse_sample_names(w, input)
     log:       "logs/grups-rs-koszyce/GRUPS_rs_koszyce.log"
     benchmark: "benchmarks/grups-rs-koszyce/GRUPS_rs_koszyce.tsv"
     conda:     "../envs/grups-rs.yml"
     shell: """
-    /data/mlefeuvre/dev/grups-rs/target/release/grups-rs pedigree-sims \
+        grups-rs pedigree-sims \
         --pileup {input.pileup} \
         --data-dir {params.data_dir} \
         --recomb-dir {params.recomb_dir} \

@@ -224,13 +224,16 @@ plot_3D_metric <- function(
 
 usage <- function() {
   script_name <- commandArgs()[0]
-  cat("Usage:", script_name, "<benchmarks dir> <output dir>")
+  cat("Usage:", script_name, "<benchmarks dir> <output dir> <pattern>\n")
+  cat("Example:", script_name, "benchmarks/grups-rs-bench/1X/",
+    "./plots/", "'.*[.]0[.]log$'", '\n'
+  )
 }
 
 main <- function() {
   # ---- Parse arguments
   args <- commandArgs(trailingOnly = TRUE)
-  if (length(args) != 2) {
+  if (length(args) != 3) {
     usage()
     stop("Invalid number of arguments")
   }
@@ -240,7 +243,12 @@ main <- function() {
   snps <- sort(snps)
 
   # ---- Load benchmark files
-  benches <- list.files(dir, full.names = TRUE)
+  benches <- list.files(
+    path       = dir,
+    pattern    = args[3],
+    full.names = TRUE,
+    recursive  = TRUE
+  )
 
   # ---- Separate bench files across number of samples
   benches <- lapply(snps, FUN = function(x) benches[grep(x, benches)])
