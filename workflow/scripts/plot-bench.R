@@ -296,7 +296,6 @@ main <- function() {
     file          = paste0(out, "runtime-rss-3d-scatterplot.html"),
     selfcontained = TRUE
   )
-  ?htmlwidgets::saveWidget
 }
 
 if (!interactive()) {

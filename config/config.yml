@@ -7,13 +7,40 @@ ftp:
 bench:
   # input-pileup must adhere to the following naming convention: 'original-data/<depth>X-<free-description>-<overlap>.pileup.gz'
   input-pileup:              "original-data/1X-EUR-pedigree-1240K.qQ20.L70-1150354.pileup.gz" 
+  expected:                  "resources/pedigree-expected-results.tsv"
   n-subsamples:              10  # Number of cascading subsamples, starting from the original overlap
   bench-replicates:          10  # Number of benchmark replicates when testing the RSS and runtime of grups-rs
+hazleton:
+  pedigree-pop:    "EUR"
+  contam-pop:      "AFR"
+  seq-error-rate:  0.0
+  reps:            1000
+  seed:            6118104365963088254
+koszyce:
+  hypotheses:
+    - "resources/koszyce-pedigrees/outbred.txt"
+    - "resources/koszyce-pedigrees/first-degree.txt"
+    - "resources/koszyce-pedigrees/second-degree.txt"
+    - "resources/koszyce-pedigrees/third-degree.txt"
+  pedigree-pop:    "EUR"
+  contam-pop:      "EUR"
+  contam-rate:
+    - 0.3
+    - 0.7
+    - 0.0
+    - 0.1
+    - 0.0
+    - 0.3
+    - 0.0
+  seq-error-rate:  0.0
+  min-qual:        25
+  reps:            1000
+  seed:            42
 grups-rs:
   max-samples:             10                               # Maximum number of samples to include in the benchmark (0-based)
   pedigree:                "resources/simple_pedigree.txt"
   pedigree-pop:            "EUR"
-  contam-pop:              "AFR"
+  contam-pop:              "EUR"
   min-depth:               1
   mode:                    "fst-mmap"
   reps:                    500
@@ -40,7 +67,7 @@ pygrups:
     ignore-dels:     True
   pedigree-sims:
     pedigree-pop:    "EUR"
-    contam-pop:      "AFR"
+    contam-pop:      "EUR"
     downsample-rate: 1.0
     contam-rate:     0.0
     seq-error-rate:  0.0

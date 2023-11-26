@@ -121,24 +121,25 @@ rule grups_rs_koszyce:
         data       = expand(rules.GRUPS_generate_fst_set.output.fst, ped_pop = "EUR", cont_pop="EUR"),
         recomb_map = rules.download_hapmap.output.map,
         targets    = rules.download_reich_1240K.output.eigenstrat[0],
-        pedigree   = "resources/koszyce-pedigree.txt",
+        pedigree   = "resources/koszyce-pedigrees/{hypothesis}.txt",
     output:
-        output_dir = directory("results/koszyce/02-run-grups/grups-rs-koszyce"),
-        pwd        = "results/koszyce/02-run-grups/grups-rs-koszyce/koszyce.RBq25Q25.1240K.pwd",
-        results    = "results/koszyce/02-run-grups/grups-rs-koszyce/koszyce.RBq25Q25.1240K.result",
-
+        output_dir = directory("results/koszyce/02-run-grups/koszyce-{hypothesis}"),
+        pwd        = "results/koszyce/02-run-grups/koszyce-{hypothesis}/koszyce.RBq25Q25.1240K.pwd",
+        results    = "results/koszyce/02-run-grups/koszyce-{hypothesis}/koszyce.RBq25Q25.1240K.result",
     params:
         data_dir       = lambda w, input: dirname(input.data[0]),
         recomb_dir     = lambda w, input: dirname(input.recomb_map[0]),
         mode           = "fst-mmap",
-        pedigree_pop   = "EUR",
-        contam_pop     = "EUR",
-        seq_error_rate = 0.0,
-        reps           = 500,
-        seed           = config['grups-rs']['seed'],
+        pedigree_pop   = config['koszyce']['pedigree-pop'],
+        contam_pop     = config['koszyce']['contam-pop'],
+        contam_rate    = config['koszyce']['contam-rate'],
+        seq_error_rate = config['koszyce']['seq-error-rate'],
+        min_qual       = config['koszyce']['seq-error-rate'],
+        reps           = config['koszyce']['reps'],
+        seed           = config['koszyce']['seed'],
         sample_names   = lambda w, input : parse_sample_names(w, input)
-    log:       "logs/grups-rs-koszyce/GRUPS_rs_koszyce.log"
-    benchmark: "benchmarks/grups-rs-koszyce/GRUPS_rs_koszyce.tsv"
+    log:       "logs/grups-rs-koszyce/koszyce-{hypothesis}.log"
+    benchmark: "benchmarks/grups-rs-koszyce/koszyce-{hypothesis}.tsv"
     conda:     "../envs/grups-rs.yml"
     shell: """
         grups-rs pedigree-sims \
@@ -148,6 +149,7 @@ rule grups_rs_koszyce:
         --pedigree {input.pedigree} \
         --pedigree-pop {params.pedigree_pop} \
         --contam-pop {params.contam_pop} \
+        --contamination-rate {params.contam_rate} \
         --seq-error-rate {params.seq_error_rate} \
         --samples 0-$(($(cat {input.bamlist} | wc -l)-1)) \
         --sample-names {params.sample_names} \
@@ -159,3 +161,10 @@ rule grups_rs_koszyce:
         --overwrite \
         --verbose > {log} 2>&1
     """
+
+
+rule get_koszyce_max_probs:
+    input: 
+        dirs = lambda w: set(dirname(file) for file in filter(lambda x: x.endswith(".result"), koszyce_output_results(w)))
+    output: "results/koszyce/koszyce-avg-max-SVM-probs.tsv"
+    shell:  "workflow/scripts/compare-avg-max-svm-probs.R {output} {input.dirs}"

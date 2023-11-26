@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#set -euo pipefail
+
+export LC_ALL='en_US.utf8'
+
+# ------------------------------------------------------------------------------------------------ #
+# ---- Base logging function
+bail() {
+    USAGE="[USAGE]: $0 <PATH TO CURRENT BENCHMARKS DIR> <PATH TO OLD BENCHMARKS DIR>"
+    [[ $# -ge 1 ]] && printf "[ERROR]: $*\n";
+    echo $USAGE;
+    exit 0;
+}
+
+drawline(){
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | sed 's/ /─/g'
+}
+
+# ------------------------------------------------------------------------------------------------ #
+# ---- Bench functions
+
+# Get the average runtime of a bench file. 
+# Assumptions:
+# - the first field of the bench file must be the runtime in seconds
+# - bench file contains a header (which is skipped)
+get_bench_avg_runtime() {
+     tail -n+2 $1 | awk '{n+=$1}END{print (n/NR)}'
+}
+
+# Format a raw runtime value (in seconds) into Hours:Minutes:Seconds format.
+seconds_to_hms(){
+    date -d@"${1#-}" -u +%H:%M:%S
+}
+
+print_bench_header(){
+    echo "OVERLAP NSAMPLES OLD_AVG_RUNTIME NEW_AVG_RUNTIME DIFF FOLD_INCREASE"
+}
+
+
+get_overlap() {
+    echo "$@" | grep -oP '(?<=[/])[0-9]+(?=[/])'
+}
+
+get_n_samples(){
+    echo "$@" | grep -oP '(?<=[-])[0-9]+(?=[.][0-9]+[.]log)'
+}
+
+# Compare the avg_runtime of two benches. Return a formatted string in the form of
+# {bench name} {new_avg_runtime} {old_avg_runtime} {runtime fold increase}
+compute_bench_improvement(){
+    cur_avg=$(get_bench_avg_runtime $1)
+    old_avg=$(get_bench_avg_runtime $2)
+    fold=$(echo "((${old_avg}-${cur_avg})/${old_avg})*100" | bc -l)
+    diff=$(seconds_to_hms $( python -c "print(${cur_avg}-${old_avg})"))
+    overlap=$(get_overlap "$1")
+    nsamples=$(get_n_samples "$1")
+    old_avg_hms="$(seconds_to_hms ${old_avg})"
+    new_avg_hms="$(seconds_to_hms ${cur_avg})"
+    printf "%d %d %8s %8s %8s %+.1f\n" $overlap $nsamples ${old_avg_hms} ${new_avg_hms} $diff $fold  
+}
+
+
+# Compare all benches within the OLD and NEW bench directory and return summary statistics for each comparison.
+#
+# Assumptions: 
+# - The names of the bench files must match. What distinguishes the "old" from the "new" bench is solely the input directory.
+compare_all_benches_dir(){
+    local now_bench_dir=$1
+    local old_bench_dir=$2
+    print_bench_header
+    for benchfile in $(find $now_bench_dir -type f -exec basename {} \;); do
+        compute_bench_improvement "${now_bench_dir}/$benchfile"  "${old_bench_dir}/$benchfile" &
+    done	
+}
+
+# Compare all benches, using a space separated file matching and OLD and NEW bench file, and return summary statistics for each comparison.
+#
+# Assumptions:
+# - First column should point to the most recent benchfile out of the two
+# - Second column should point to the oldest benchfile out of the two
+# - Columns are space separated.
+compare_all_benches_file(){
+    print_bench_header
+    while IFS=' ' read -r new_bench old_bench; do
+	if [ -f ${new_bench} ]; then
+	    benchfile=$(basename "$new_bench")
+            compute_bench_improvement "${new_bench}"  "${old_bench}" &
+        else
+	    continue
+	fi
+    done < $1
+}
+
+compute_overall_improvement(){
+	awk -vhline="$(drawline)" '{improvement+=$6}END{print hline; print "Overall improvement:", improvement/NR"%"}'
+}
+
+color_output() {
+    esc=$(printf '\033');
+    float_re='[0-9]+([.][0-9]+)?$'
+    sed -E -e "s/([+]${float_re})/${esc}[32m\1${esc}[0m/" -e "s/([-]${float_re})/${esc}[31m\1${esc}[0m/"
+
+}
+
+# ---- MAIN 
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    if [ $# -eq 1 ] && [ -f $1 ]; then
+        compare_all_benches_file $1 
+    else  
+        [[ $# -ne 2 ]] && bail "Not enough arguments"
+        [[ ! -d $1 ]] || [[ ! -d $2 ]] && bail "Provided argument(s) is not a directory."
+        compare_all_benches_dir $1 $2 
+	fi | sort -n -k1,1 -k2,2 | tee >(column -t | color_output > /dev/tty) | tail -n+2 | compute_overall_improvement
+fi
+

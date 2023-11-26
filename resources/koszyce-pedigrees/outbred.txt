@@ -1,0 +1,39 @@
+#  0.0F --+-- 0.1M --+-- 0.2F
+#         |          |
+#         |      +---+---+
+#         |      |       |
+#        1.0M   1.1M    1.2M --+-- 1.3F
+#                              |
+#                             2.0M
+#
+#0.0F   # K14 proxy
+#0.1M   # Putative father of K5, K15, K11 and K10
+#0.2F   # Putative mother of K11 and K10
+#1.0M   # K5/K15 proxy
+#1.1M   # K11 proxy
+#1.2M   # K10 proxy
+#1.3F   # K1 proxy
+#2.0M   # K2 proxy
+INDIVIDUALS
+0.0F
+0.1M
+0.2F
+1.0M
+1.1M
+1.2M
+1.3F
+2.0M
+RELATIONSHIPS
+1.0M=repro(0.0F,0.1M)
+1.1M=repro(0.1M,0.2F)
+1.2M=repro(0.1M,0.2F)
+2.0M=repro(1.2M,1.3F)
+COMPARISONS
+Self=compare(2.0M,2.0M)              # E(r)=1.0
+1st-degree=compare(1.1M,1.2M)        # E(r)=0.5
+half-siblings=compare(1.0M,1.1M)     # E(r)=0.25
+avuncular=compare(1.1M,2.0M)         # E(r)=0.25
+half-avuncunlar=compare(1.0M,2.0M)   # E(r)=0.125
+Unrelated=compare(1.2M,1.3F)         # E(r)=0.0
+Unrelated=compare(0.0F,2.0M)         # E(r)=0.0
+

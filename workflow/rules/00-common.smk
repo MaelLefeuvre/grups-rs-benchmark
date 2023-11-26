@@ -1,6 +1,17 @@
 configfile: "./config/config.yml"
 
+from os.path import basename, splitext
 import re
+
+def koszyce_output_results(wildcards):
+    hypotheses = [basename(splitext(pedigree)[0]) for pedigree in config['koszyce']['hypotheses']]
+    return expand(rules.grups_rs_koszyce.output, hypothesis = hypotheses)
+
+
+def get_expected_rels():
+    with open(config['bench']['expected']) as f:
+        _ = f.readline()
+        return set([rel for rel in map(lambda x: x.strip('\n').split('\t')[3], f.readlines())])
 
 def get_base_overlap():
     return int(re.findall(r'(?<=[-])[0-9]+(?=[.])', config['bench']['input-pileup'])[0])

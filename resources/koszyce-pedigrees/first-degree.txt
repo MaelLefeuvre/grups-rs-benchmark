@@ -1,4 +1,3 @@
-
 #  0.0F -------+------- 0.1M
 #              |
 #   +----------+----------+
@@ -28,28 +27,23 @@ INDIVIDUALS
 1.1M
 1.2F
 2.0M
-# ---- 2.1M
+2.1M
 2.2M
 2.3F
 3.0M
-# next define offspring relationships
 RELATIONSHIPS
 1.0F=repro(0.0F,0.1M)
 1.2F=repro(0.0F,0.1M)
 2.0M=repro(1.0F,1.1M)
-# ---- 2.1M=repro(1.1M,1.2F)
+2.1M=repro(1.1M,1.2F)
 2.2M=repro(1.1M,1.2F)
 3.0M=repro(2.2M,2.3F)
-
-
-# finally, define pairwise comparisons for which to calculate/output genetic distances and later perform plotting
 COMPARISONS
-Self=compare(3.0M,3.0M)                 # E(r)=1.0
-Full-siblings=compare(1.0F,1.2F)        # E(r)=0.5
-¾-siblings=compare(2.0M,2.2M)           # E(r)=0.375
-avuncular=compare(2.2M,1.0F)            # E(r)=0.25
-# ---- grandparental=compare(3.0M,1.2F)        # E(r)=0.25
-¾-avuncular=compare(2.0M,3.0M)          # E(r)=0.1875
-great-grandparental=compare(0.0F,3.0M)  # E(r)=0.125
-Unrelated=compare(2.0M,2.3F)            # E(r)=0.0
+Self=compare(3.0M,3.0M)              # E(r)=1.0
+1st-degree=compare(2.1M,2.2M)        # E(r)=0.5
+2nd+3rd-degree=compare(2.0M,2.1M)    # E(r)=0.375 (0.25 + 0.125)
+2nd-degree=compare(2.1M,3.0M)        # E(r)=0.25
+3rd+4th-degree=compare(2.0M,3.0M)    # E(r)=0.1875 (0.125 + 0.0625)
+3rd-degree=compare(1.0F,3.0M)        # E(r)=0.125
+Unrelated=compare(2.0M,2.3F)         # E(r)=0.0
 

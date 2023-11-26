@@ -1,0 +1,55 @@
+#                 0.0F --+-- 0.1M
+#                        |
+#             + -------- + -------- +
+# 1.0M --+-- 1.1F                  1.2F ---+--- 1.3M
+#        |                                 |
+#       2.0F -----+----- 2.1M -----+----- 2.2F
+#                 |                |
+#                 |            +---+---+
+#                 |            |       |
+#                3.0M         3.1M    3.2M --+-- 3.3F
+#                                            |
+#                                           4.0M
+#
+#0.0F   # Putative grandmother of K14 and of 1.2F (mother of K11, and K10)
+#0.1M   # Putative frandfather of K14 and of 1.2F (mother of K11 and K10)
+#2.0F   # K14 proxy
+#2.1M   # Putative father of K5, K15, K11 and K10
+#2.2F   # Putative cousin of K14 (mother of K11 and K10)
+#3.0M   # K5/K15 proxy
+#3.1M   # K11 proxy
+#3.2M   # K10 proxy
+#3.3F   # K1 proxy
+#4.0M   # K2 proxy
+INDIVIDUALS
+0.0F
+0.1M
+1.0M
+1.1F
+1.2F
+1.3M
+2.0F
+2.1M
+2.2F
+3.0M
+3.1M
+3.2M
+3.3F
+4.0M
+RELATIONSHIPS
+1.1F=repro(0.0F,0.1M)
+1.2F=repro(0.0F,0.1M)
+2.0F=repro(1.0M,1.1F)
+2.2F=repro(1.2F,1.3M)
+3.0M=repro(2.0F,2.1M)
+3.1M=repro(2.1M,2.2F)
+3.2M=repro(2.1M,2.2F)
+4.0M=repro(3.2M,3.3F)
+COMPARISONS
+Self=compare(3.0M,3.0M)                 # E(r)=1.0
+1st-degree=compare(3.1M,3.2M)           # E(r)=0.5
+2nd+5th-degree=compare(3.0M,3.1M)       # E(r)=0.28125 (0.25+ 0.03125)
+2nd-degree=compare(3.1M,4.0M)           # E(r)=0.25
+3rd+6th-degree=compare(3.0M,4.0M)       # E(r)=0.140625 (0.125 + 0.015625)
+5th-degree=compare(2.0F,4.0M)                  # E(r)=0.03125
+Unrelated=compare(3.0M,3.3F)            # E(r)=0.0

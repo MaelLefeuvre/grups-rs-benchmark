@@ -1,6 +1,6 @@
 rule get_observed_pwd:
     input:
-        pileup      = "results/input-pileups/{depth}X-EUR-pedigree-1240K.qQ20.L70-{overlap}.pileup", 
+        pileup      = "results/input-pileups/{overlap}/{depth}X-EUR-pedigree-1240K.qQ20.L70-{overlap}.0.pileup", 
     output:
         pwd         = "results/pygrups/{depth}X/{overlap}/pwd-distributions/pwd-from-stdin.out"
     params:
@@ -120,7 +120,7 @@ rule pygrups_pedigree_sims:
     conda:     "../envs/pygrups.yml"
     threads: 1
     shell: """
-        pedigree_sims.py \
+        /usr/bin/time -v pedigree_sims.py \
         --label {params.label} \
         --ds_rate {params.ds_rate} \
         --c_rate {params.c_rate},{params.c_rate} \
@@ -134,6 +134,7 @@ rule pygrups_pedigree_sims:
         --recomb_dir {input.recomb_dir}/ \
         --pedigree_pop {params.ped_pop} \
         --contam_pop {params.contam_pop},{params.contam_pop} \
-        > {log} 2>&1
+        --verbose 1 \
+        > {log} 2>&1 && touch {output.done}
     """
 

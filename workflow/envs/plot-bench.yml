@@ -8,3 +8,7 @@ dependencies:
   - conda-forge::r-reshape2=1.4.4
   - conda-forge::r-stringr
   - conda-forge::r-htmlwidgets
+  - conda-forge::r-caret=6.0_94
+  - conda-forge::r-viridis>=0.6.0
+  - conda-forge::r-plyr>=1.8.0
+  - conda-forge::r-svglite>=2.1.0

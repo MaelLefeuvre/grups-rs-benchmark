@@ -4,7 +4,7 @@ from os.path import dirname
 import sys
 
 def get_bench_replicates():
-    1 if "grups_rs_perf_bench" in sys.argv else config['bench']['bench-replicates']
+    return 1 if "grups_rs_perf_bench" in sys.argv else config['bench']['bench-replicates']
 
 
 rule subset_1000g_samples_panel:
@@ -141,4 +141,46 @@ rule run_GRUPS:
         --seed {params.seed} \
         --overwrite \
         --quiet > {log} 2>&1
+    """
+
+rule plot_runtime_benchmark:
+    input:
+        benches = expand("results/{depth}X/{overlap}/{nsamples}/{description}-{id}/{depth}X-{description}-{overlap}.{id}.pwd",
+            depth       = get_depth(),
+            description = get_description(),
+            nsamples    = [i+1 for i in range(0, config['grups-rs']['max-samples'])],
+            overlap     = get_overlap_list(),
+            id          = 0
+        )
+    output:
+        hms_runtime_plot = "results/bench-plots/runtime-hms-3d-scatterplot.html",
+        rss_runtime_plot = "results/bench-plots/runtime-rss-3d-scatterplot.html"
+    params:
+        bench_dir  = "benchmarks/grups-rs-bench/1X/",
+        output_dir = lambda w, output: dirname(output.hms_runtime_plot),
+        pattern    = '.*[.]0[.]log$'
+    log:   "logs/grups-rs-bench/plot-bench.log"
+    conda: "../envs/plot-bench.yml"
+    shell: """
+        workflow/scripts/plot-bench.R {params.bench_dir} {params.output_dir} '{params.pattern}' > {log} 2>&1
+    """
+
+rule plot_bench_accuracy:
+    input:
+        expected = config['bench']['expected'],
+        results = expand(
+            expand("results/{depth}X/{{overlap}}/{nsamples}/{description}-{{id}}/{depth}X-{description}-{{overlap}}.{{id}}.result",
+                depth       = get_depth(),
+                description = get_description(),
+                nsamples    = config['grups-rs']['max-samples'],
+            ),
+            zip,
+            overlap  = [get_base_overlap()] + compute_overlap_powerlist(),
+            id       = [0] + compute_subsample_ids_powerlist(),
+        )
+    output:
+        plots = expand("results/accuracy-plots/accuracy-barplot-{rel}.png", rel = get_expected_rels())
+
+    shell: """
+        workflow/scripts/plot-bench-results.R $(dirname {output.plots} | uniq) {input.expected} {input.results}
     """

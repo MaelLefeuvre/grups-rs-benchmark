@@ -2,9 +2,8 @@
 
 A set of snakemake workflows and jupyter notebooks to benchmark the runtime, memory consumption, and performance of GRUPS-rs
 
-## Usage
+## Installation
 
-### Setup
 1. Install [miniconda3](https://docs.conda.io/projects/miniconda/en/latest/)
    ```bash
    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && bash Miniconda3-latest-Linux-x86_64.sh
@@ -20,13 +19,24 @@ A set of snakemake workflows and jupyter notebooks to benchmark the runtime, mem
    conda env create -f ./envs/snakemake-7.20.0.yml
    ```
 
-## Requirements:
+## Requirements
 
 - This pipeline is self-contained and will therefore download any data required to run to completion. about 85GB of disk is required to run the whole workflow.
 - If you wish to apply GRUPS-rs on the Hazleton-North dataset with this pipeline, a computer with at least 32GB of RAM is recommended. 
 
+## Recommendations
 
-## Running GRUPS-rs' runtime benchmark
+Note that as with many other softwares, the runtime performance of GRUPS-rs can be heavily influenced by the type of disk in which its input data is stored. If possible, make sure to run this workflow from within an SSD drive:, Having as much free space as possible within this drive (e.g.: at least 25%), can also be critical, as the read/write speed of SSDs is notoriously known to plummet when close to being full. If runtime performance is critical to you, running the following UNIX commands before starting this workflow might also be of help:
+
+```bash
+sudo fstrim -av
+sudo cpupower frequency-set --governor performance
+```
+
+---
+
+## Usage 
+### Running GRUPS-rs' runtime benchmark
 
 Optionally tweak the `config/config.yml` configuration file beforehand. 
 
@@ -34,7 +44,7 @@ Then, simply run the snakemake pipeline using the following command
 
 ```bash
 conda activate snakemake-7.20.0
-snakemake grups_rs_bench --cores 1 --use-conda --conda-frontend mamba --printshellcmds
+snakemake runtime --cores 1 --use-conda --conda-frontend mamba --printshellcmds
 ```
 
 This should:
@@ -44,29 +54,81 @@ This should:
 4. FSA-encode the 1000g-phase3 dataset (if `mode` param is set to `fst` or `fst-mmap`)
 5. Apply GRUPS-rs 10 times on the following parameter space:
   - number of pairwise comparisons: (1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
-  - Average pairwise SNP overlap: [2247, 4494, 8988, 17975, 35950, 71899, 143797, 287593, 575185, 1150369]
+  - Average number of positions within the input pileup: [2246, 4493, 8987, 17974, 35948, 71897, 143794, 287588, 575177, 1150354]
 6. Plot a 3D surface plot of the average runtime and maximum resident set size
 
 ###### Output:
 - raw benchmark results should be located in `benchmarks`
 - 3D-surface plots should be located in `results/bench-plots`
 
-### Compute the average local sequencing depth of each input pileup file
-```Shell
-BAM="original-data/1X-EUR-pedigree-1240K.qQ20.L70.pileup"
-for i in {0..10}; do 
-  echo $i $(awk -vstep=$i 'BEGIN{n=0}{n+=$(4+(3*step))}END{print n/NR}' $BAM)
-done
-```
+## Testing the accuracy of GRUPS-rs on the benchmark input dataset
 
-## Running PyGrups' runtime benchmark
+A rudimentary benchmark of the classification accuracy of GRUPS-rs can be obtained by running the following workflow:
+
 ```bash
 conda activate snakemake-7.20.0
-snakemake pygrups_bench --cores 1 --use-conda --conda-frontend mamba --printshellcmds
+snakemake accuracy --cores `nproc` --use-conda --conda-frontend mamba --printshellcmds
+```
+
+This should:
+1. Perform cascading subsamples from an input pileup file containing 1150354 positions, thus generating independant input files in powers of two: 
+   | avg. number of positions within the input pileup | number of independent files |
+   | ------------------------------------------------ | --------------------------- |
+   | 1150354                                          |   1                         |
+   | 575177                                           |   2                         |
+   | 287588                                           |   4                         |
+   | 143794                                           |   8                         |
+   | 71897                                            |  16                         |
+   | 35948                                            |  32                         |
+   | 17974                                            |  64                         |
+   | 8987                                             | 128                         |
+   | 4493                                             | 256                         |
+   | 2246                                             | 512                         |
+
+2. Apply GRUPS-rs once on each of these files.
+3. Generate per-class classification performance plots for every expected relationship found within the pileup file. The 11 individuals within this pileup file were generated using [ped-sim](https://github.com/williamslab/ped-sim) [(Caballero et al. 2019)](https://doi.org/10.1371/journal.pgen.1007979) and harbors the following pairwise relationships:
+   | relationship | n   |
+   | ------------ | --- |
+   | Unrelated    | 31  |
+   | First        | 12  |
+   | Second       | 08  |
+   | Third        | 03  |
+   | Self         | 01  |
+
+
+Hence the total number of predictions applied by GRUPS-rs during this benchmark is as follows:
+| avg. number of positions within the input pileup | number of independent files | total | n-Unrelated | n-First | n-Second | n-Third | n-Self |
+| ------------------------------------------------ | --------------------------- | ----- | ----------- | ------- | -------- | ------- | ------ |
+| 1150354                                          |   1                         | 55    | 31          | 12      | 8        | 3       | 1      |
+| 575177                                           |   2                         | 110   | 62          | 24      | 16       | 6       | 2      |
+| 287588                                           |   4                         | 220   | 124         | 48      | 32       | 12      | 4      |
+| 143794                                           |   8                         | 440   | 248         | 96      | 64       | 24      | 8      |
+| 71897                                            |  16                         | 880   | 496         | 192     | 128      | 48      | 16     |
+| 35948                                            |  32                         | 1760  | 992         | 384     | 256      | 96      | 32     |
+| 17974                                            |  64                         | 3520  | 1984        | 768     | 512      | 192     | 64     |
+| 8987                                             | 128                         | 7040  | 3968        | 1536    | 1024     | 384     | 128    |
+| 4493                                             | 256                         | 14080 | 7936        | 3072    | 2048     | 768     | 256    |
+| 2246                                             | 512                         | 28160 | 15872       | 6144    | 4096     | 1536    | 512    |
+
+##### Output
+- Per-class classification performance plots should be located in `results/accuracy-plots`
+
+
+---
+
+## Running PyGrups' runtime benchmark
+
+This workflow will fire up a benchmark of the previous version of GRUPS, written in python (See [grups (GitHub)](https://github.com/sameoldmike/grups), and [(Martin et al 2017](https://doi.org/10.1111/mec.14188))
+
+```bash
+conda activate snakemake-7.20.0
+snakemake pygrups --cores 1 --use-conda --conda-frontend mamba --printshellcmds
 ```
 
 ###### Output:
 - Raw benchmark results for PyGrups should be located in `benchmarks/pygrups`
+
+---
 
 ## Applying GRUPS-rs on the Hazleton-North dataset
    
@@ -75,7 +137,7 @@ snakemake pygrups_bench --cores 1 --use-conda --conda-frontend mamba --printshel
 1. Run the snakemake pipeline using the following command
    ```bash
    conda activate snakemake-7.20.0
-   snakemake grups_rs_hazleton --cores `nproc` --use-conda --conda-frontend mamba --printshellcmds
+   snakemake hazleton --cores `nproc` --use-conda --conda-frontend mamba --printshellcmds
    ```
 
    This should:
@@ -97,3 +159,19 @@ snakemake pygrups_bench --cores 1 --use-conda --conda-frontend mamba --printshel
 ###### Output:
 - Results and plots should be located in `results/hazleton`
 
+---
+
+## Applying GRUPS-rs on the Koszyce dataset
+
+1. Run the snakemake pipeline using the following command
+   ```bash
+   conda activate snakemake-7.20.0
+   snakemake koszyce --cores `nproc` --use-conda --conda-frontend mamba --printshellcmds
+   ```
+
+###### Output:
+- Raw results and output tables should be located in `results/koszyce`
+- Interactive plots can be visualized using [grups.plots](https://github.com/MaelLefeuvre/grups.plots). e.g.:
+    ```r
+    grups.plots::app("results/koszyce/02-run-grups/koszyce-first-degree/")
+    ```

@@ -7,6 +7,8 @@ include: "rules/koszyce-bench.smk"
 include: "rules/subsample-pileup.smk"
 configfile: "./config/config.yml"
 
+from os.path import basename
+
 wildcard_constraints:
     overlap = '[0-9]+',
     id      = '[0-9]+',
@@ -14,59 +16,24 @@ wildcard_constraints:
     nsamples = '[0-9]+',
 
 
-rule bench_runtime:
-    input:
-        expand("results/{depth}X/{overlap}/{nsamples}/{description}-{id}/{depth}X-{description}-{overlap}.{id}.pwd",
-            depth       = get_depth(),
-            description = get_description(),
-            nsamples    = [i+1 for i in range(0, config['grups-rs']['max-samples'])],
-            overlap     = get_overlap_list(),
-            id          = 0
-        )
-
-
-rule plot_bench:
+rule runtime:
     default_target: True
+    input: rules.plot_runtime_benchmark.output
+
+rule accuracy:
+    input: rules.plot_bench_accuracy.output
+
+rule koszyce:
     input:
-        benches = rules.bench_runtime.input
-    output:
-        hms_runtime_plot = "results/bench-plots/runtime-hms-3d-scatterplot.html",
-        rss_runtime_plot = "results/bench-plots/runtime-rss-3d-scatterplot.html"
-    params:
-        bench_dir  = "benchmarks/grups-rs-bench/1X/",
-        output_dir = lambda w, output: dirname(output.hms_runtime_plot),
-        pattern    = '.*[.]0[.]log$'
-    conda: "envs/plot-bench.yml"
-    shell: """
-        workflow/scripts/plot-bench.R {params.bench_dir} {params.output_dir} '{params.pattern}'
-    """
+        koszyce_output_results,
+        rules.get_koszyce_max_probs.output
 
+rule hazleton:
+    input: rules.grups_rs_hazleton.output
 
-rule bench_accuracy:
-    input:
-        expand(
-            expand("results/{depth}X/{{overlap}}/{nsamples}/{description}-{{id}}/{depth}X-{description}-{{overlap}}.{{id}}.pwd",
-                depth       = get_depth(),
-                description = get_description(),
-                nsamples    = config['grups-rs']['max-samples'],
-            ),
-            zip,
-            overlap  = [get_base_overlap()] + compute_overlap_powerlist(),
-            id       = [0] + compute_subsample_ids_powerlist(),
-        )
-
-
-rule bench_pygrups:
+rule pygrups:
     input:
         expand(rules.pygrups_pedigree_sims.output.done,
             depth    = get_depth(),
             overlap  = get_overlap_list()
         )
-
-
-rule koszyce:
-    input: rules.grups_rs_koszyce.output
-
-
-rule hazleton:
-    input: rules.grups_rs_hazleton.output

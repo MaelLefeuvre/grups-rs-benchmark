@@ -21,7 +21,7 @@ rule download_hazleton_bams:
 
 rule create_hazleton_bamlist:
     input:
-        bams      = rules.download_hazleton_bams.output.bams,
+        bams    = rules.download_hazleton_bams.output.bams,
     output:
         bamlist = "results/hazleton/01-pileup/hazleton-bams.list"
     shell: """
@@ -57,18 +57,18 @@ rule grups_rs_hazleton:
         pedigree   = "workflow/scripts/grups-rs/resources/pedigrees/extended_pedigree.txt",
     output:
         output_dir = directory("results/hazleton/02-run-grups/grups-rs-hazleton-north"),
-        pwd        =           "results/hazleton/02-run-grups/grups-rs-hazleton-north/hazleton.RBq25Q25.1240K.pwd",
+        pwd        = "results/hazleton/02-run-grups/grups-rs-hazleton-north/hazleton.RBq25Q25.1240K.pwd",
         results    = "results/hazleton/02-run-grups/grups-rs-hazleton-north/hazleton.RBq25Q25.1240K.result",
 
     params:
         data_dir       = lambda w, input: dirname(input.data[0]),
         recomb_dir     = lambda w, input: dirname(input.recomb_map[0]),
-        pedigree_pop   = "EUR",
-        contam_pop     = "AFR",
-        seq_error_rate = 0.0,
-        mode           = "fst",
-        reps           = 1000,
-        seed           = 6118104365963088254
+        mode           = "fst-mmap",
+        pedigree_pop   = config['hazleton']['pedigree-pop'],
+        contam_pop     = config['hazleton']['contam-pop'],
+        seq_error_rate = config['hazleton']['seq-error-rate'],
+        reps           = config['hazleton']['reps'],
+        seed           = config['hazleton']['seed']
     log:       "logs/grups-rs-hazleton/GRUPS_rs_hazleton.log"
     benchmark: "benchmarks/grups-rs-hazleton/GRUPS_rs_hazleton.tsv"
     conda:     "../envs/grups-rs.yml"
@@ -84,12 +84,10 @@ rule grups_rs_hazleton:
         --samples 0-$(($(cat {input.bamlist} | wc -l)-1)) \
         --sample-names $(grep -oP '[A-Z0-9]+[m|f](?=_hg19.bam$)' {input.bamlist} | tr '\n' ' ') \
         --reps {params.reps} \
-        --mode fst-mmap \
+        --mode {params.mode} \
         --output-dir {output.output_dir} \
         --seed {params.seed} \
         --self-comparison \
-        --ignore-dels \
-        --print-blocks \
         --overwrite \
         --verbose > {log} 2>&1
     """
