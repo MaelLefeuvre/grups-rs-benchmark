@@ -1,6 +1,6 @@
 [submodule "workflow/scripts/grups-rs"]
 	path = workflow/scripts/grups-rs
-	url = git@github.com:MaelLefeuvre/grups-rs.git
+	url = https://github.com/MaelLefeuvre/grups-rs
 [submodule "workflow/scripts/grups.plots"]
 	path = workflow/scripts/grups.plots
-	url = git@github.com:MaelLefeuvre/grups.plots.git
+	url = https://github.com/MaelLefeuvre/grups.plots
