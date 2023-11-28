@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+PILEUP="$1"
+#PILEUP="original-data/1X-EUR-pedigree-q20-L70-gargammel-1.1.4.RBq20Q20.1240K-1150331.pileup.gz";
+
+[[ ${PILEUP} == *gz ]] && CAT=zcat || CAT=cat
+
+count_pileup_samples(){
+	head -n 1 <($CAT $1) | awk -F"\t" '{print (NF-3)/3}'
+}
+
+printf "| Sample index | Local sequencing Depth |\n"
+for i in $(seq 0 $(($(count_pileup_samples $PILEUP)-1))); do 
+    awk -vstep=$i 'BEGIN{n=0}{n+=$(4+(3*step))}END{printf "| %12s | %22s |\n", step, n/NR}' <($CAT $PILEUP)
+done

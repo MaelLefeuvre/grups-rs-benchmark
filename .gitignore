@@ -1,7 +1,18 @@
+# Ignore Snakemake's output 
 /.snakemake
-.ipynb_checkpoints/
-/results
-/backup-results
 /benchmarks
 /logs
+/results
 /data
+
+# Notebook' and interactive session  output
+.ipynb_checkpoints/
+.Rhistory
+
+# ignore backups
+/backup-results
+
+# ignore everything in original-data, except compressed pileups
+original-data/*
+!original-data/*.pileup.gz
+
