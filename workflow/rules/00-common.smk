@@ -14,7 +14,7 @@ def get_expected_rels():
         return set([rel for rel in map(lambda x: x.strip('\n').split('\t')[3], f.readlines())])
 
 def get_base_overlap():
-    return int(re.findall(r'(?<=[-])[0-9]+(?=[.])', config['bench']['input-pileup'])[0])
+    return int(re.findall(r'(?<=[-])[0-9]+(?=[.]pileup.gz)', config['bench']['input-pileup'])[0])
 
 def get_description():
     return re.findall(r'(?<=[/][0-9]X-).*(?=[-][0-9]+[.]pileup.gz$)', config['bench']['input-pileup'])[0]

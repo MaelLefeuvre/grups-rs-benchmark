@@ -13,4 +13,4 @@ CMAKE_C_FLAGS="-I./ -L./ -I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib" \
 cargo install --path $(pwd)/workflow/scripts/grups-rs --root $CONDA_PREFIX
 
 # ---- Install grups.plots
-R --slave -e 'devtools::install_github("git@github.com:MaelLefeuvre/grups.plots.git", upgrade="always")'
+R --slave -e 'devtools::install_github("MaelLefeuvre/grups.plots", upgrade="always")'
