@@ -6,7 +6,7 @@ ftp:
   hapmap-url: "http://ftp.ncbi.nlm.nih.gov/hapmap/recombination/2011-01_phaseII_B37/genetic_map_HapMapII_GRCh37.tar.gz"
 bench:
   # input-pileup must adhere to the following naming convention: 'original-data/<depth>X-<free-description>-<overlap>.pileup.gz'
-  input-pileup:              "original-data/1X-EUR-pedigree-1240K.qQ20.L70-1150354.pileup.gz" 
+  input-pileup:              "original-data/1X-EUR-pedigree-q20-L70-gargammel-1.1.4.RBq20Q20.1240K-1150331.pileup.gz" 
   expected:                  "resources/pedigree-expected-results.tsv"
   n-subsamples:              10  # Number of cascading subsamples, starting from the original overlap
   bench-replicates:          10  # Number of benchmark replicates when testing the RSS and runtime of grups-rs

@@ -1,11 +1,6 @@
 configfile: "./config/config.yml"
 
 from os.path import dirname
-import sys
-
-def get_bench_replicates():
-    return 1 if "grups_rs_perf_bench" in sys.argv else config['bench']['bench-replicates']
-
 
 rule subset_1000g_samples_panel:
     input:

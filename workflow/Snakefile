@@ -8,6 +8,8 @@ include: "rules/subsample-pileup.smk"
 configfile: "./config/config.yml"
 
 from os.path import basename
+import sys
+
 
 wildcard_constraints:
     overlap = '[0-9]+',
@@ -15,7 +17,19 @@ wildcard_constraints:
     depth   = '[0-9]',
     nsamples = '[0-9]+',
 
-
+onstart:
+    message = f"""Will apply the workflow using the following matched wildcards and parameters:
+      - Benchmark replicates: {get_bench_replicates()}
+      - Overlap list        : {get_overlap_list()}
+      - Subsamples list     : {get_subsamples_list()}  
+      - Pileup depth        : {get_depth()}
+      - Pileup description  : {get_description()}
+    """
+    print(message, file=sys.stderr)
+    if input("Continue? [Yes/*]:") != "Yes":
+        sys.exit(1)
+    
+     
 rule runtime:
     default_target: True
     input: rules.plot_runtime_benchmark.output

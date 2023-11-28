@@ -1,7 +1,10 @@
 configfile: "./config/config.yml"
 
 from os.path import basename, splitext
-import re
+import re, sys
+
+def get_bench_replicates():
+    return 1 if "accuracy" in sys.argv else config['bench']['bench-replicates']
 
 def koszyce_output_results(wildcards):
     hypotheses = [basename(splitext(pedigree)[0]) for pedigree in config['koszyce']['hypotheses']]
@@ -30,3 +33,6 @@ def compute_subsample_ids_powerlist():
 
 def get_overlap_list():
     return [int(get_base_overlap()/(2**i)) for i in range(config['bench']['n-subsamples'])]
+
+def get_subsamples_list():
+    return [2**i for i in range(config['bench']['n-subsamples'])]
