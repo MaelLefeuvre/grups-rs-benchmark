@@ -82,9 +82,9 @@ compare_all_benches_dir(){
 compare_all_benches_file(){
     print_bench_header
     while IFS=' ' read -r new_bench old_bench; do
-	if [ -f ${new_bench} ]; then
+	if [[ -f ${new_bench} ]]; then
 	    benchfile=$(basename "$new_bench")
-            compute_bench_improvement "${new_bench}"  "${old_bench}" &
+            compute_bench_improvement "${new_bench}" "${old_bench}" &
         else
 	    continue
 	fi
@@ -110,6 +110,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         [[ $# -ne 2 ]] && bail "Not enough arguments"
         [[ ! -d $1 ]] || [[ ! -d $2 ]] && bail "Provided argument(s) is not a directory."
         compare_all_benches_dir $1 $2 
-	fi | sort -n -k1,1 -k2,2 | tee >(column -t | color_output > /dev/tty) | tail -n+2 | compute_overall_improvement
+    fi | sort -n -k1,1 -k2,2 | tee >(column -t | color_output > /dev/tty) | tail -n+2 | compute_overall_improvement
 fi
 

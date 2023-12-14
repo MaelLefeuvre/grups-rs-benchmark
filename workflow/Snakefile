@@ -26,7 +26,8 @@ onstart:
       - Pileup description  : {get_description()}
     """
     print(message, file=sys.stderr)
-    if input("Continue? [Yes/*]:") != "Yes":
+    print("Continue? [Yes|*]: ", file=sys.stderr, end='')
+    if input() != "Yes":
         sys.exit(1)
     
      

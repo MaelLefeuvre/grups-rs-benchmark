@@ -175,7 +175,7 @@ rule plot_bench_accuracy:
         )
     output:
         plots = expand("results/accuracy-plots/accuracy-barplot-{rel}.png", rel = get_expected_rels())
-
+    log: "logs/grups-rs-bench/plot-classification-results.log"
     shell: """
-        workflow/scripts/plot-bench-results.R $(dirname {output.plots} | uniq) {input.expected} {input.results}
+        workflow/scripts/plot-classification-results.R $(dirname {output.plots} | uniq) {input.expected} {input.results} > {log} 2>&1
     """
