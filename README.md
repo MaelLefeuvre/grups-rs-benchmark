@@ -1,4 +1,5 @@
 # GRUPS-rs benchmark
+[![DOI](https://zenodo.org/badge/695099930.svg)](https://zenodo.org/doi/10.5281/zenodo.10389549)
 
 A set of snakemake workflows and jupyter notebooks to benchmark the runtime, memory consumption, and performance of GRUPS-rs
 
